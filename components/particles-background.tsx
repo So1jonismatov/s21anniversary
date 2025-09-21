@@ -1,4 +1,4 @@
-'''use client';
+"use client";
 
 import { useEffect, useState } from 'react';
 import Particles, { initParticlesEngine } from '@tsparticles/react';
@@ -101,4 +101,3 @@ export function ParticlesBackground() {
 
   return null;
 }
-'''

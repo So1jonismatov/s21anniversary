@@ -1,7 +1,7 @@
 "use client";
 
-import { useSpring, animated } from '@react-spring/web';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, animate } from "framer-motion";
 
 interface MusicLineProps {
   isPlaying: boolean;
@@ -9,21 +9,75 @@ interface MusicLineProps {
 }
 
 export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
-  const lineSpring = useSpring({
-    transform: isPlaying 
-      ? "scaleX(1) rotate(5deg)" 
-      : "scaleX(1) rotate(0deg)",
-    config: { tension: 300, friction: 20 },
-  });
+  const width = 256;
+  const height = 20;
+  const amplitude = 6;
+  const frequency = 2; // number of full sine cycles across the width
+
+  const phaseRef = useRef(0);
+  const path = useMotionValue(flatPath());
+
+  // --- Create flat line ---
+  function flatPath() {
+    return `M 0 ${height / 2} L ${width} ${height / 2}`;
+  }
+
+  // --- Create sinusoidal wave path ---
+  function wavePath(phase: number) {
+    let pathData = `M 0 ${height / 2}`;
+    for (let x = 0; x <= width; x++) {
+      const radians = (2 * Math.PI * frequency * x) / width + phase;
+      const y = height / 2 + Math.sin(radians) * amplitude;
+      pathData += ` L ${x} ${y}`;
+    }
+    return pathData;
+  }
+
+  // --- Animation loop ---
+  useEffect(() => {
+    let animId: number;
+    let lastTime = 0;
+
+    const animateLoop = (time: number) => {
+      if (!isPlaying) return;
+      if (lastTime === 0) lastTime = time;
+      const delta = time - lastTime;
+      lastTime = time;
+
+      phaseRef.current += delta * 0.01; // controls wave speed
+      path.set(wavePath(phaseRef.current));
+
+      animId = requestAnimationFrame(animateLoop);
+    };
+
+    if (isPlaying) {
+      animId = requestAnimationFrame(animateLoop);
+    } else {
+      // when paused → flatten line
+      animate(path, flatPath(), { duration: 0.3, ease: "easeInOut" });
+    }
+
+    return () => cancelAnimationFrame(animId);
+  }, [isPlaying, path]);
 
   return (
-    <div className="absolute bottom-10 w-full flex flex-col items-center">
-      <animated.div
-        style={lineSpring}
-        className="w-32 h-1 bg-white rounded-full cursor-pointer mb-4"
+    <div className="absolute top-10 w-full flex flex-col items-center z-50">
+      <div
+        className="cursor-pointer mb-4"
         onClick={toggleMusic}
-      />
-      <span className="text-white/70 text-sm">
+        style={{ width, height }}
+      >
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+          <motion.path
+            d={path}
+            stroke="white"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
+      <span className="text-white/70 text-sm transition-all duration-300 ease-out">
         {isPlaying ? "Click line to pause music" : "Click line to play music"}
       </span>
     </div>

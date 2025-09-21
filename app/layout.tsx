@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { BubbleBackground } from "@/components/bubble-background";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -27,9 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased min-h-screen`}>
+        <BubbleBackground interactive className="fixed inset-0 -z-10" />
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
