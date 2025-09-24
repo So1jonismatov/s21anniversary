@@ -22,18 +22,28 @@ A beautiful celebration page for School 21's 1st anniversary with animated effec
 2. Add your music file:
    - Place your music file as `public/music.mp3`
 
-3. Set up Supabase (if you want to persist congratulations):
-   - Create a Supabase project at https://supabase.com
-   - Create a table named `congratulations` with columns:
-     - `id` (int, primary key, auto-increment)
-     - `name` (text)
-     - `message` (text)
-     - `created_at` (timestamp, default: now())
-   - Add your Supabase credentials to `.env.local`:
+3. Set up environment variables:
+   - Copy `.env.example` to `.env.local`:
+     ```bash
+     cp .env.example .env.local
      ```
-     NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   - Update the API configuration in `.env.local`:
+     ```bash
+     NEXT_PUBLIC_API_BASE_URL=your_api_base_url
+     NEXT_PUBLIC_API_ENDPOINT=/api
      ```
+   - For Supabase (if you want to persist congratulations):
+     - Create a Supabase project at https://supabase.com
+     - Create a table named `congratulations` with columns:
+       - `id` (int, primary key, auto-increment)
+       - `name` (text)
+       - `message` (text)
+       - `created_at` (timestamp, default: now())
+     - Add your Supabase credentials to `.env.local`:
+       ```bash
+       NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+       NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+       ```
 
 4. Run the development server:
    ```bash
@@ -51,6 +61,17 @@ This project uses:
 - @tsparticles/react for particle effects
 - typewriter-effect for typewriter animations
 - Supabase for database (optional)
+
+## Deployment
+
+When deploying to Vercel:
+1. Set the environment variables in your Vercel project settings:
+   - `NEXT_PUBLIC_API_BASE_URL`: Your API base URL
+   - `NEXT_PUBLIC_API_ENDPOINT`: Your API endpoint (typically `/api`)
+   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase URL (if using Supabase)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key (if using Supabase)
+
+2. The project is configured to work with Vercel's deployment process.
 
 ## Customization
 

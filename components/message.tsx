@@ -1,5 +1,4 @@
-import React from 'react';
-import './message.css';
+import React from "react";
 
 interface MessageProps {
   text: string;
@@ -7,8 +6,8 @@ interface MessageProps {
 
 const Message: React.FC<MessageProps> = ({ text }) => {
   return (
-    <div className="message-container">
-      <p className="message-text">{text}</p>
+    <div className="p-5 border border-gray-200 rounded-lg my-5">
+      <p className="font-sans text-white">{text}</p>
     </div>
   );
 };

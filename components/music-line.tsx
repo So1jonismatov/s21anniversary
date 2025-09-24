@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 
 interface MusicLineProps {
@@ -9,10 +9,21 @@ interface MusicLineProps {
 }
 
 export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
-  const width = 256;
+  const [width, setWidth] = useState(256);
   const height = 20;
   const amplitude = 6;
   const frequency = 2; // number of full sine cycles across the width
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newWidth = Math.min(window.innerWidth * 0.8, 256);
+      setWidth(newWidth);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const phaseRef = useRef(0);
   const path = useMotionValue(flatPath());
