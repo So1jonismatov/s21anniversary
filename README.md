@@ -66,12 +66,14 @@ This project uses:
 
 When deploying to Vercel:
 1. Set the environment variables in your Vercel project settings:
-   - `NEXT_PUBLIC_API_BASE_URL`: Your API base URL
+   - `NEXT_PUBLIC_API_BASE_URL`: Your API base URL (this is used by the proxy route)
    - `NEXT_PUBLIC_API_ENDPOINT`: Your API endpoint (typically `/api`)
    - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase URL (if using Supabase)
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key (if using Supabase)
 
-2. The project is configured to work with Vercel's deployment process.
+2. The project includes an API proxy route (`/api/congratulations`) that forwards requests from your HTTPS Vercel domain to the HTTP API, avoiding mixed content issues.
+
+3. The project is configured to work with Vercel's deployment process.
 
 ## Customization
 

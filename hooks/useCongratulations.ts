@@ -3,8 +3,8 @@
 import { useState, useRef } from "react";
 import { Congratulation } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://161.35.204.26:3010";
-const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT || "/api";
+// Use the proxy endpoint instead of the direct API
+const PROXY_API_ENDPOINT = "/api/congratulations";
 
 export function useCongratulations() {
   const [congratulations, setCongratulations] = useState<Congratulation[]>([]);
@@ -14,7 +14,7 @@ export function useCongratulations() {
     if (prefetched.current) return;
     prefetched.current = true;
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINT}`);
+      const response = await fetch(PROXY_API_ENDPOINT);
       if (response.ok) {
         const data = await response.json();
         setCongratulations(data);
@@ -31,7 +31,7 @@ export function useCongratulations() {
     setCongratulations((prev) => [newCongratulation, ...prev]);
 
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINT}`, {
+      const response = await fetch(PROXY_API_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
