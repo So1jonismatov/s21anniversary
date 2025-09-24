@@ -36,7 +36,6 @@ export default function CongratulationsForm({
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
-    console.error("Form submitted");
     e.preventDefault();
     if (
       formData.username.trim() &&

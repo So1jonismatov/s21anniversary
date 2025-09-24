@@ -58,8 +58,7 @@ function BubbleBackground({
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    return () =>
-      window.removeEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [interactive, mouseX, mouseY]);
 
   return (
@@ -67,7 +66,7 @@ function BubbleBackground({
       ref={containerRef}
       data-slot="bubble-background"
       className={cn(
-        "relative size-full overflow-hidden bg-gradient-to-br from-[#7c46d5] to-[#44eb99]",
+        "relative size-full overflow-hidden bg-[#1d2633]",
         className,
       )}
       {...props}
@@ -136,6 +135,13 @@ function BubbleBackground({
           transition={{ duration: 40, ease: "linear", repeat: Infinity }}
         >
           <div className="absolute rounded-full size-[80%] bg-[radial-gradient(circle_at_center,rgba(var(--third-color),0.8)_0%,rgba(var(--third-color),0)_50%)] mix-blend-hard-light top-[calc(50%+200px)] left-[calc(50%-500px)]" />
+        </motion.div>
+        <motion.div
+          className="absolute inset-0 flex justify-center items-center origin-[calc(50%+400px)]"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 40, ease: "linear", repeat: Infinity }}
+        >
+          <div className="absolute rounded-full size-[80%] bg-[radial-gradient(circle_at_center,rgba(var(--third-color),0.8)_0%,rgba(var(--third-color),0)_50%)] mix-blend-hard-light top-[calc(50%+300px)] left-[calc(50%-300px)]" />
         </motion.div>
 
         <motion.div
