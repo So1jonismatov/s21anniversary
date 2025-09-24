@@ -165,6 +165,7 @@ export default function CongratulationsForm({
                 !formData.comment.trim() ||
                 formData.comment.length < 10
               }
+              onClick={handleFormSubmit}
             >
               Send Congratulations
             </button>
