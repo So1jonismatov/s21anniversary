@@ -8,6 +8,7 @@ import MusicLine from "@/components/music-line";
 import CongratulationsForm from "@/components/CongratulationsForm";
 import { Congratulation } from "@/types";
 import { useCongratulations } from "@/hooks/useCongratulations";
+import { isMobileOrTouchDevice } from "@/lib/mobile-detection";
 
 const MemoizedCongratulationsCanvas = React.memo(CongratulationsCanvas);
 const MemoizedFireworksBackground = React.memo(FireworksBackground);
@@ -31,6 +32,7 @@ export default function Home() {
   const [showMusicLine, setShowMusicLine] = useState(false);
   const [fireworksActive, setFireworksActive] = useState(false);
   const [newestMessageId, setNewestMessageId] = useState<number | null>(null);
+  const isMobile = React.useMemo(() => isMobileOrTouchDevice(), []);
 
   const { congratulations, prefetchCongratulations, addCongratulation } =
     useCongratulations();
@@ -67,7 +69,7 @@ export default function Home() {
 
       {/* Fireworks effect */}
       <AnimatePresence>
-        {fireworksActive && (
+        {fireworksActive && !isMobile && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

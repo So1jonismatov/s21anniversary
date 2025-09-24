@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { animated, useTransition } from "@react-spring/web";
 import { Congratulation } from "@/types";
 import { usePanAndZoom } from "@/hooks/usePanAndZoom";
+import { isMobileOrTouchDevice } from "@/lib/mobile-detection";
 
 type CongratulationsCanvasProps = {
   congratulations: Congratulation[];
@@ -22,6 +23,8 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
   const windowSize = useRef({ width: 0, height: 0 });
   const mousePosition = useRef({ x: 0, y: 0 });
   const animationRef = useRef<number>(0);
+  // Detect if we're on a mobile device for performance optimizations
+  const isMobile = isMobileOrTouchDevice();
 
   const { x, y, scale, handleMouseDown, handleTouchStart, api } =
     usePanAndZoom();
@@ -40,7 +43,12 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
     const newPositions: {
       [key: number]: { x: number; y: number; speed: number; hue: number };
     } = {};
-    congratulations.forEach((c) => {
+    // Limit the number of congratulations on mobile for performance
+    const limitedCongratulations = isMobile 
+      ? congratulations.slice(0, Math.min(congratulations.length, 50)) 
+      : congratulations;
+      
+    limitedCongratulations.forEach((c) => {
       if (c.id === newestMessageId) {
         newPositions[c.id] = {
           x: 0,
@@ -62,7 +70,7 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
       }
     });
     setPositions(newPositions);
-  }, [congratulations, newestMessageId]);
+  }, [congratulations, newestMessageId, isMobile]);
 
   useEffect(() => {
     if (newestMessageId) {
@@ -193,12 +201,22 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
   const transitions = useTransition(congratulations, {
     from: { opacity: 0, transform: "translateY(20px)" },
     enter: { opacity: 1, transform: "translateY(0px)" },
-    trail: 100,
+    trail: isMobile ? 50 : 100, // Reduce trail animation on mobile
     keys: (item) => item.id,
   });
 
   const renderMessages = () => {
+    // Limit the number of messages rendered on mobile
+    const visibleCongratulations = isMobile 
+      ? congratulations.slice(0, Math.min(congratulations.length, 50))
+      : congratulations;
+
     return transitions((style, congratulation) => {
+      // Skip rendering if this congratulation is not in our visible set on mobile
+      if (isMobile && !visibleCongratulations.some(c => c.id === congratulation.id)) {
+        return null;
+      }
+      
       const pos = positions[congratulation.id];
       if (!pos) return null;
 
@@ -218,71 +236,28 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
             top: `calc(50% + ${mainPos.y}px)`,
             transform: "translate(-50%, -50%)",
             zIndex: Math.floor(speedFactor * 10),
-            backgroundColor: `hsla(${hue}, 70%, 50%, 0.2)`,
-            borderColor: `hsla(${hue}, 70%, 70%, 0.4)`,
+            backgroundColor: `hsla(${hue}, 70%, 50%, ${isMobile ? 0.15 : 0.2})`, // Reduce opacity on mobile
+            borderColor: `hsla(${hue}, 70%, 70%, ${isMobile ? 0.3 : 0.4})`,
           }}
           onClick={() => centerOnMessage(congratulation.id)}
-          className="px-6 py-8 backdrop-blur-lg rounded-2xl shadow-xl w-48 md:w-64 cursor-pointer hover:opacity-90 transition-all duration-300 ease-out border"
+          className={`px-4 py-6 backdrop-blur-lg rounded-2xl shadow-xl w-40 md:w-48 cursor-pointer ${
+            isMobile ? "hover:opacity-80" : "hover:opacity-90"
+          } transition-all duration-300 ease-out border`}
         >
           <h3
-            className="text-lg md:text-xl font-semibold font-playfair"
+            className="text-base md:text-lg font-semibold font-playfair truncate"
             style={{ color: `hsl(${hue}, 90%, 90%)` }}
           >
             {congratulation.username}
           </h3>
           <p
-            className="mt-3 font-playfair"
+            className="mt-2 text-sm font-playfair line-clamp-3"
             style={{ color: `hsl(${hue}, 80%, 85%)` }}
           >
             {congratulation.comment}
           </p>
         </animated.div>,
       );
-
-      const offsets = [
-        { x: -canvasSize.current.width, y: 0 },
-        { x: canvasSize.current.width, y: 0 },
-        { x: 0, y: -canvasSize.current.height },
-        { x: 0, y: canvasSize.current.height },
-        { x: -canvasSize.current.width, y: -canvasSize.current.height },
-        { x: canvasSize.current.width, y: -canvasSize.current.height },
-        { x: -canvasSize.current.width, y: canvasSize.current.height },
-        { x: canvasSize.current.width, y: canvasSize.current.height },
-      ];
-
-      offsets.forEach((offset, index) => {
-        const wrapPos = getWrappedPosition(congratulation.id, 1);
-        messages.push(
-          <animated.div
-            key={`${congratulation.id}-wrap-${index}`}
-            style={{
-              ...style,
-              position: "absolute",
-              left: `calc(50% + ${wrapPos.x + offset.x * speedFactor}px)`,
-              top: `calc(50% + ${wrapPos.y + offset.y * speedFactor}px)`,
-              transform: "translate(-50%, -50%)",
-              zIndex: Math.floor(speedFactor * 10),
-              backgroundColor: `hsla(${hue}, 70%, 50%, 0.15)`,
-              borderColor: `hsla(${hue}, 70%, 70%, 0.3)`,
-            }}
-            onClick={() => centerOnMessage(congratulation.id)}
-            className="px-6 py-8 backdrop-blur-lg rounded-2xl shadow-xl w-48 md:w-64 cursor-pointer hover:opacity-80 transition-all duration-300 ease-out border opacity-80"
-          >
-            <h3
-              className="text-lg md:text-xl font-semibold font-playfair"
-              style={{ color: `hsl(${hue}, 90%, 85%)` }}
-            >
-              {congratulation.username}
-            </h3>
-            <p
-              className="mt-3 font-playfair"
-              style={{ color: `hsl(${hue}, 80%, 80%)` }}
-            >
-              {congratulation.comment}
-            </p>
-          </animated.div>,
-        );
-      });
 
       return messages;
     });
@@ -302,4 +277,4 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
   );
 };
 
-export default CongratulationsCanvas;
+export default React.memo(CongratulationsCanvas);

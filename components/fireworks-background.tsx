@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { isMobileOrTouchDevice } from "@/lib/mobile-detection";
 
 const rand = (min: number, max: number): number =>
   Math.random() * (max - min) + min;
@@ -109,12 +110,14 @@ function createFirework(
   particleSpeed: { min: number; max: number } | number,
   particleSize: { min: number; max: number } | number,
   onExplode: (particles: ParticleType[]) => void,
+  isMobile: boolean = false,
 ): FireworkType {
   const angle = -Math.PI / 2 + rand(-0.3, 0.3);
   const vx = Math.cos(angle) * speed;
   const vy = Math.sin(angle) * speed;
   const trail: { x: number; y: number }[] = [];
-  const trailLength = randInt(10, 25);
+  // Reduce trail length on mobile for performance
+  const trailLength = isMobile ? randInt(5, 15) : randInt(10, 25);
 
   return {
     x,
@@ -144,7 +147,8 @@ function createFirework(
       return true;
     },
     explode() {
-      const numParticles = randInt(50, 150);
+      // Reduce particle count on mobile devices for performance
+      const numParticles = isMobile ? randInt(20, 60) : randInt(50, 150);
       const particles: ParticleType[] = [];
       for (let i = 0; i < numParticles; i++) {
         const particleAngle = rand(0, Math.PI * 2);
@@ -226,6 +230,9 @@ function FireworksBackground({
   const containerRef = React.useRef<HTMLDivElement>(null);
   React.useImperativeHandle(ref, () => containerRef.current as HTMLDivElement);
 
+  // Detect mobile device for performance optimizations
+  const isMobile = React.useMemo(() => isMobileOrTouchDevice(), []);
+
   React.useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -273,9 +280,13 @@ function FireworksBackground({
           particleSpeed,
           particleSize,
           handleExplosion,
+          isMobile,
         ),
       );
-      const timeout = rand(300, 800) / population;
+      // Reduce frequency on mobile devices
+      const timeout = isMobile 
+        ? (rand(300, 800) / population) * 2 
+        : rand(300, 800) / population;
       setTimeout(launchFirework, timeout);
     };
 
@@ -283,6 +294,11 @@ function FireworksBackground({
 
     let animationFrameId: number;
     const animate = () => {
+      // Reduce rendering quality on mobile for performance
+      if (isMobile) {
+        ctx.globalAlpha = 0.9;
+      }
+      
       ctx.clearRect(0, 0, maxX, maxY);
 
       for (let i = fireworks.length - 1; i >= 0; i--) {
@@ -327,6 +343,7 @@ function FireworksBackground({
           particleSpeed,
           particleSize,
           handleExplosion,
+          isMobile,
         ),
       );
     };
@@ -345,6 +362,7 @@ function FireworksBackground({
     fireworkSize,
     particleSpeed,
     particleSize,
+    isMobile,
   ]);
 
   return (

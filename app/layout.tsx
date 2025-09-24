@@ -28,7 +28,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased min-h-screen`}>
-        <BubbleBackground interactive className="fixed inset-0 -z-10" />
+        {/* Non-interactive bubble background for better mobile performance */}
+        <BubbleBackground className="fixed inset-0 -z-10" />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

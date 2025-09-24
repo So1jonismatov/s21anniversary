@@ -9,6 +9,7 @@ import {
 } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { isMobileOrTouchDevice } from "@/lib/mobile-detection";
 
 type BubbleBackgroundProps = React.ComponentProps<"div"> & {
   interactive?: boolean;
@@ -42,13 +43,17 @@ function BubbleBackground({
   const containerRef = React.useRef<HTMLDivElement>(null);
   React.useImperativeHandle(ref, () => containerRef.current as HTMLDivElement);
 
+  // On mobile devices, disable interactivity for performance
+  const isMobile = React.useMemo(() => isMobileOrTouchDevice(), []);
+  const shouldBeInteractive = interactive && !isMobile;
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const springX = useSpring(mouseX, transition);
   const springY = useSpring(mouseY, transition);
 
   React.useEffect(() => {
-    if (!interactive) return;
+    if (!shouldBeInteractive) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       const centerX = window.innerWidth / 2;
@@ -59,7 +64,7 @@ function BubbleBackground({
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [interactive, mouseX, mouseY]);
+  }, [shouldBeInteractive, mouseX, mouseY]);
 
   return (
     <div
@@ -158,7 +163,7 @@ function BubbleBackground({
           <div className="absolute rounded-full size-[160%] mix-blend-hard-light bg-[radial-gradient(circle_at_center,rgba(var(--fifth-color),0.8)_0%,rgba(var(--fifth-color),0)_50%)] top-[calc(50%-80%)] left-[calc(50%-80%)]" />
         </motion.div>
 
-        {interactive && (
+        {shouldBeInteractive && (
           <motion.div
             className="absolute rounded-full size-full mix-blend-hard-light bg-[radial-gradient(circle_at_center,rgba(var(--sixth-color),0.8)_0%,rgba(var(--sixth-color),0)_50%)] opacity-70"
             style={{
