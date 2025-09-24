@@ -233,152 +233,155 @@ function FireworksBackground({
   // Detect mobile device for performance optimizations
   const isMobile = React.useMemo(() => isMobileOrTouchDevice(), []);
 
-  React.useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let maxX = window.innerWidth;
-    let ratio = container.offsetHeight / container.offsetWidth;
-    let maxY = maxX * ratio;
-    canvas.width = maxX;
-    canvas.height = maxY;
-
-    const setCanvasSize = () => {
-      maxX = window.innerWidth;
-      ratio = container.offsetHeight / container.offsetWidth;
-      maxY = maxX * ratio;
+    React.useEffect(() => {
+      if (isMobile) return;
+  
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
+      if (!canvas || !container) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+  
+      let maxX = window.innerWidth;
+      let ratio = container.offsetHeight / container.offsetWidth;
+      let maxY = maxX * ratio;
       canvas.width = maxX;
       canvas.height = maxY;
-    };
-    window.addEventListener("resize", setCanvasSize);
-
-    const explosions: ParticleType[] = [];
-    const fireworks: FireworkType[] = [];
-
-    const handleExplosion = (particles: ParticleType[]) => {
-      explosions.push(...particles);
-    };
-
-    const launchFirework = () => {
-      const x = rand(maxX * 0.1, maxX * 0.9);
-      const y = maxY;
-      const targetY = rand(maxY * 0.1, maxY * 0.4);
-      const fireworkColor = getColor(color);
-      const speed = getValueByRange(fireworkSpeed);
-      const size = getValueByRange(fireworkSize);
-      fireworks.push(
-        createFirework(
-          x,
-          y,
-          targetY,
-          fireworkColor,
-          speed,
-          size,
-          particleSpeed,
-          particleSize,
-          handleExplosion,
-          isMobile,
-        ),
-      );
-      // Reduce frequency on mobile devices
-      const timeout = isMobile 
-        ? (rand(300, 800) / population) * 2 
-        : rand(300, 800) / population;
-      setTimeout(launchFirework, timeout);
-    };
-
-    launchFirework();
-
-    let animationFrameId: number;
-    const animate = () => {
-      // Reduce rendering quality on mobile for performance
-      if (isMobile) {
-        ctx.globalAlpha = 0.9;
-      }
-      
-      ctx.clearRect(0, 0, maxX, maxY);
-
-      for (let i = fireworks.length - 1; i >= 0; i--) {
-        const firework = fireworks[i];
-        if (!firework?.update()) {
-          fireworks.splice(i, 1);
-        } else {
-          firework.draw(ctx);
+  
+      const setCanvasSize = () => {
+        maxX = window.innerWidth;
+        ratio = container.offsetHeight / container.offsetWidth;
+        maxY = maxX * ratio;
+        canvas.width = maxX;
+        canvas.height = maxY;
+      };
+      window.addEventListener("resize", setCanvasSize);
+  
+      const explosions: ParticleType[] = [];
+      const fireworks: FireworkType[] = [];
+  
+      const handleExplosion = (particles: ParticleType[]) => {
+        explosions.push(...particles);
+      };
+  
+      const launchFirework = () => {
+        const x = rand(maxX * 0.1, maxX * 0.9);
+        const y = maxY;
+        const targetY = rand(maxY * 0.1, maxY * 0.4);
+        const fireworkColor = getColor(color);
+        const speed = getValueByRange(fireworkSpeed);
+        const size = getValueByRange(fireworkSize);
+        fireworks.push(
+          createFirework(
+            x,
+            y,
+            targetY,
+            fireworkColor,
+            speed,
+            size,
+            particleSpeed,
+            particleSize,
+            handleExplosion,
+            isMobile,
+          ),
+        );
+        // Reduce frequency on mobile devices
+        const timeout = isMobile
+          ? (rand(300, 800) / population) * 2
+          : rand(300, 800) / population;
+        setTimeout(launchFirework, timeout);
+      };
+  
+      launchFirework();
+  
+      let animationFrameId: number;
+      const animate = () => {
+        // Reduce rendering quality on mobile for performance
+        if (isMobile) {
+          ctx.globalAlpha = 0.9;
         }
-      }
-
-      for (let i = explosions.length - 1; i >= 0; i--) {
-        const particle = explosions[i];
-        particle?.update();
-        if (particle?.isAlive()) {
-          particle.draw(ctx);
-        } else {
-          explosions.splice(i, 1);
+  
+        ctx.clearRect(0, 0, maxX, maxY);
+  
+        for (let i = fireworks.length - 1; i >= 0; i--) {
+          const firework = fireworks[i];
+          if (!firework?.update()) {
+            fireworks.splice(i, 1);
+          } else {
+            firework.draw(ctx);
+          }
         }
-      }
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    const handleClick = (event: MouseEvent) => {
-      const x = event.clientX;
-      const y = maxY;
-      const targetY = event.clientY;
-      const fireworkColor = getColor(color);
-      const speed = getValueByRange(fireworkSpeed);
-      const size = getValueByRange(fireworkSize);
-      fireworks.push(
-        createFirework(
-          x,
-          y,
-          targetY,
-          fireworkColor,
-          speed,
-          size,
-          particleSpeed,
-          particleSize,
-          handleExplosion,
-          isMobile,
-        ),
-      );
-    };
-
-    container.addEventListener("click", handleClick);
-
-    return () => {
-      window.removeEventListener("resize", setCanvasSize);
-      container.removeEventListener("click", handleClick);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [
-    population,
-    color,
-    fireworkSpeed,
-    fireworkSize,
-    particleSpeed,
-    particleSize,
-    isMobile,
-  ]);
-
-  return (
-    <div
-      ref={containerRef}
-      data-slot="fireworks-background"
-      className={cn("relative size-full overflow-hidden", className)}
-      {...props}
-    >
-      <canvas
-        {...canvasProps}
-        ref={canvasRef}
-        className={cn("absolute inset-0 size-full", canvasProps?.className)}
-      />
-    </div>
-  );
-}
-
+  
+        for (let i = explosions.length - 1; i >= 0; i--) {
+          const particle = explosions[i];
+          particle?.update();
+          if (particle?.isAlive()) {
+            particle.draw(ctx);
+          } else {
+            explosions.splice(i, 1);
+          }
+        }
+  
+        animationFrameId = requestAnimationFrame(animate);
+      };
+  
+      animate();
+  
+      const handleClick = (event: MouseEvent) => {
+        const x = event.clientX;
+        const y = maxY;
+        const targetY = event.clientY;
+        const fireworkColor = getColor(color);
+        const speed = getValueByRange(fireworkSpeed);
+        const size = getValueByRange(fireworkSize);
+        fireworks.push(
+          createFirework(
+            x,
+            y,
+            targetY,
+            fireworkColor,
+            speed,
+            size,
+            particleSpeed,
+            particleSize,
+            handleExplosion,
+            isMobile,
+          ),
+        );
+      };
+  
+      container.addEventListener("click", handleClick);
+  
+      return () => {
+        window.removeEventListener("resize", setCanvasSize);
+        container.removeEventListener("click", handleClick);
+        cancelAnimationFrame(animationFrameId);
+      };
+    }, [
+      population,
+      color,
+      fireworkSpeed,
+      fireworkSize,
+      particleSpeed,
+      particleSize,
+      isMobile,
+    ]);
+  
+    return (
+      <div
+        ref={containerRef}
+        data-slot="fireworks-background"
+        className={cn("relative size-full overflow-hidden", className)}
+        {...props}
+      >
+        {!isMobile && (
+          <canvas
+            {...canvasProps}
+            ref={canvasRef}
+            className={cn("absolute inset-0 size-full", canvasProps?.className)}
+          />
+        )}
+      </div>
+    );
+  }
 export { FireworksBackground, type FireworksBackgroundProps };

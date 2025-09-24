@@ -37,6 +37,7 @@ export default function CongratulationsForm({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted");
     if (
       formData.username.trim() &&
       formData.comment.trim() &&
@@ -156,11 +157,9 @@ export default function CongratulationsForm({
               ease: [0.4, 0, 0.2, 1],
             }}
           >
-            <motion.button
+            <button
               type="submit"
               className="px-6 py-3 bg-purple-600 rounded-lg text-white font-semibold hover:bg-purple-700 transition-all duration-300 ease-out"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               disabled={
                 !formData.username.trim() ||
                 !formData.comment.trim() ||
@@ -168,7 +167,7 @@ export default function CongratulationsForm({
               }
             >
               Send Congratulations
-            </motion.button>
+            </button>
           </motion.div>
         </form>
       </motion.div>
