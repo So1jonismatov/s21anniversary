@@ -3,7 +3,7 @@ export const isMobileDevice = () => {
   if (typeof window === 'undefined') return false;
   
   // Check user agent for mobile devices
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+  const userAgent = navigator.userAgent || navigator.vendor;
   
   // Mobile regex patterns
   const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;

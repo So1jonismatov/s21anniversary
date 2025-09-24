@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 
 interface MusicLineProps {
@@ -26,23 +26,27 @@ export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
   }, []);
 
   const phaseRef = useRef(0);
-  const path = useMotionValue(flatPath());
 
   // --- Create flat line ---
-  function flatPath() {
+  const flatPath = useCallback(() => {
     return `M 0 ${height / 2} L ${width} ${height / 2}`;
-  }
+  }, [width]);
 
   // --- Create sinusoidal wave path ---
-  function wavePath(phase: number) {
-    let pathData = `M 0 ${height / 2}`;
-    for (let x = 0; x <= width; x++) {
-      const radians = (2 * Math.PI * frequency * x) / width + phase;
-      const y = height / 2 + Math.sin(radians) * amplitude;
-      pathData += ` L ${x} ${y}`;
-    }
-    return pathData;
-  }
+  const wavePath = useCallback(
+    (phase: number) => {
+      let pathData = `M 0 ${height / 2}`;
+      for (let x = 0; x <= width; x++) {
+        const radians = (2 * Math.PI * frequency * x) / width + phase;
+        const y = height / 2 + Math.sin(radians) * amplitude;
+        pathData += ` L ${x} ${y}`;
+      }
+      return pathData;
+    },
+    [width],
+  );
+
+  const path = useMotionValue(flatPath());
 
   // --- Animation loop ---
   useEffect(() => {
@@ -69,7 +73,7 @@ export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
     }
 
     return () => cancelAnimationFrame(animId);
-  }, [isPlaying, path]);
+  }, [isPlaying, path, flatPath, wavePath]);
 
   return (
     <div className="absolute top-10 w-full flex flex-col items-center z-50">

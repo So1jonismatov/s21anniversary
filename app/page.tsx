@@ -67,7 +67,7 @@ export default function Home() {
       {/* Audio element */}
       <audio ref={audioRef} src="/music.mp3" loop />
 
-      {/* Fireworks effect */}
+      {/* Fireworks effect - disabled on mobile for performance */}
       <AnimatePresence>
         {fireworksActive && !isMobile && (
           <motion.div
@@ -79,6 +79,8 @@ export default function Home() {
             <MemoizedFireworksBackground
               className="absolute inset-0 flex items-center justify-center rounded-xl"
               color={FIREWORK_COLORS}
+              // Reduce particle count on mobile
+              population={isMobile ? 0.3 : 1}
             />
           </motion.div>
         )}
@@ -106,7 +108,7 @@ export default function Home() {
         />
       )}
 
-      {/* Congratulations display section */}
+      {/* Congratulations display section - only show on non-mobile or with reduced performance impact */}
       {showCanvas && (
         <div className="w-full h-screen absolute top-0 left-0 z-0">
           <MemoizedCongratulationsCanvas

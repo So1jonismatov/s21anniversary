@@ -44,10 +44,10 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
       [key: number]: { x: number; y: number; speed: number; hue: number };
     } = {};
     // Limit the number of congratulations on mobile for performance
-    const limitedCongratulations = isMobile 
-      ? congratulations.slice(0, Math.min(congratulations.length, 50)) 
+    const limitedCongratulations = isMobile
+      ? congratulations.slice(0, Math.min(congratulations.length, 50))
       : congratulations;
-      
+
     limitedCongratulations.forEach((c) => {
       if (c.id === newestMessageId) {
         newPositions[c.id] = {
@@ -72,11 +72,31 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
     setPositions(newPositions);
   }, [congratulations, newestMessageId, isMobile]);
 
+  const centerOnMessage = React.useCallback((id: number) => {
+    const pos = positions[id];
+    if (pos) {
+      api.start({
+        x: -pos.x,
+        y: -pos.y,
+        scale: 1.5,
+        config: {
+          tension: 170,
+          friction: 26,
+          easing: (t: number) => {
+            return t < 0.5
+              ? 4 * t * t * t
+              : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+          },
+        },
+      });
+    }
+  }, [api, positions]);
+
   useEffect(() => {
     if (newestMessageId) {
       centerOnMessage(newestMessageId);
     }
-  }, [newestMessageId]);
+  }, [newestMessageId, centerOnMessage]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -142,26 +162,6 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
     };
   }, [api, x, y]);
 
-  const centerOnMessage = (id: number) => {
-    const pos = positions[id];
-    if (pos) {
-      api.start({
-        x: -pos.x,
-        y: -pos.y,
-        scale: 1.5,
-        config: {
-          tension: 170,
-          friction: 26,
-          easing: (t: number) => {
-            return t < 0.5
-              ? 4 * t * t * t
-              : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-          },
-        },
-      });
-    }
-  };
-
   const getWrappedPosition = (id: number, speedFactor: number = 1) => {
     const pos = positions[id];
     if (!pos) return { x: 0, y: 0 };
@@ -207,16 +207,19 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
 
   const renderMessages = () => {
     // Limit the number of messages rendered on mobile
-    const visibleCongratulations = isMobile 
+    const visibleCongratulations = isMobile
       ? congratulations.slice(0, Math.min(congratulations.length, 50))
       : congratulations;
 
     return transitions((style, congratulation) => {
       // Skip rendering if this congratulation is not in our visible set on mobile
-      if (isMobile && !visibleCongratulations.some(c => c.id === congratulation.id)) {
+      if (
+        isMobile &&
+        !visibleCongratulations.some((c) => c.id === congratulation.id)
+      ) {
         return null;
       }
-      
+
       const pos = positions[congratulation.id];
       if (!pos) return null;
 
