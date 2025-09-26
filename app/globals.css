@@ -68,3 +68,13 @@
         @apply bg-transparent text-foreground;
     }
 }
+
+.static-radial-gradient {
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(var(--first-color), 0.8) 0%,
+            rgba(var(--second-color), 0.8) 50%,
+            rgba(var(--first-color), 0) 100%
+        );
+}
