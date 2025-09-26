@@ -66,7 +66,13 @@ export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
     };
 
     if (isPlaying) {
-      animId = requestAnimationFrame(animateLoop);
+      const controls = animate(path, wavePath(phaseRef.current), {
+        duration: 0.3,
+        ease: "easeInOut",
+      });
+      controls.then(() => {
+        animId = requestAnimationFrame(animateLoop);
+      });
     } else {
       // when paused → flatten line
       animate(path, flatPath(), { duration: 0.3, ease: "easeInOut" });
@@ -77,10 +83,13 @@ export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
 
   return (
     <div className="absolute top-10 w-full flex flex-col items-center z-50">
-      <div
+      <motion.div
         className="cursor-pointer mb-4"
         onClick={toggleMusic}
         style={{ width, height }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       >
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
           <motion.path
@@ -89,9 +98,12 @@ export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
             strokeWidth="2"
             fill="none"
             strokeLinecap="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
           />
         </svg>
-      </div>
+      </motion.div>
       <span className="text-white/70 text-sm transition-all duration-300 ease-out">
         {isPlaying ? "Click line to pause music" : "Click line to play music"}
       </span>

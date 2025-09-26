@@ -1,9 +1,9 @@
 "use client";
 
 import { useSpring } from "@react-spring/web";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, RefObject } from "react";
 
-export function usePanAndZoom() {
+export function usePanAndZoom(ref: RefObject<HTMLDivElement | null>) {
   const [{ x, y, scale }, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -24,6 +24,8 @@ export function usePanAndZoom() {
   const panStart = useRef({ x: 0, y: 0 });
   const panStartTime = useRef<number>(0);
   const initialPinchDistance = useRef(0);
+  const isThrottled = useRef(false);
+  const throttleTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isPanning.current = true;
@@ -90,7 +92,7 @@ export function usePanAndZoom() {
     requestAnimationFrame(momentum);
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = (e: TouchEvent) => {
     if (e.touches.length === 1) {
       isPanning.current = true;
       lastPosition.current = {
@@ -138,14 +140,20 @@ export function usePanAndZoom() {
         y: e.touches[0].clientY,
       };
     } else if (e.touches.length === 2 && initialPinchDistance.current > 0) {
+      if (isThrottled.current) return;
+      isThrottled.current = true;
+
       const currentPinchDistance = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY,
       );
       const scaleFactor = currentPinchDistance / initialPinchDistance.current;
-      const amplifiedScaleFactor = 1 + (scaleFactor - 1) * 2;
-      api.start({ scale: scale.get() * amplifiedScaleFactor });
+      api.start({ scale: scale.get() * scaleFactor });
       initialPinchDistance.current = currentPinchDistance;
+
+      throttleTimeout.current = setTimeout(() => {
+        isThrottled.current = false;
+      }, 16);
     }
     e.preventDefault();
   };
@@ -191,27 +199,41 @@ export function usePanAndZoom() {
   };
 
   useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
     const handleMouseMoveWrapper = (e: MouseEvent) => handleMouseMove(e);
     const handleMouseUpWrapper = () => handleMouseUp();
+    const handleTouchStartWrapper = (e: TouchEvent) => handleTouchStart(e);
     const handleTouchMoveWrapper = (e: TouchEvent) => handleTouchMove(e);
     const handleTouchEndWrapper = (e: TouchEvent) => handleTouchEnd(e);
     const handleWheelWrapper = (e: WheelEvent) => handleWheel(e);
+
+    element.addEventListener("mousedown", handleMouseDown as any);
+    element.addEventListener("touchstart", handleTouchStartWrapper, {
+      passive: false,
+    });
     window.addEventListener("mousemove", handleMouseMoveWrapper);
     window.addEventListener("mouseup", handleMouseUpWrapper);
     window.addEventListener("touchmove", handleTouchMoveWrapper, {
       passive: false,
     });
     window.addEventListener("touchend", handleTouchEndWrapper);
-    window.addEventListener("wheel", handleWheelWrapper, { passive: false });
+    element.addEventListener("wheel", handleWheelWrapper, { passive: false });
 
     return () => {
+      if (throttleTimeout.current) {
+        clearTimeout(throttleTimeout.current);
+      }
+      element.removeEventListener("mousedown", handleMouseDown as any);
+      element.removeEventListener("touchstart", handleTouchStartWrapper);
       window.removeEventListener("mousemove", handleMouseMoveWrapper);
       window.removeEventListener("mouseup", handleMouseUpWrapper);
       window.removeEventListener("touchmove", handleTouchMoveWrapper);
       window.removeEventListener("touchend", handleTouchEndWrapper);
-      window.removeEventListener("wheel", handleWheelWrapper);
+      element.removeEventListener("wheel", handleWheelWrapper);
     };
-  }, []);
+  }, [ref]);
 
-  return { x, y, scale, handleMouseDown, handleTouchStart, api };
+  return { x, y, scale, api };
 }

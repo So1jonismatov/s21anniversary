@@ -8,7 +8,7 @@ import MusicLine from "@/components/music-line";
 import CongratulationsForm from "@/components/CongratulationsForm";
 import { Congratulation } from "@/types";
 import { useCongratulations } from "@/hooks/useCongratulations";
-import { isMobileOrTouchDevice } from "@/lib/mobile-detection";
+import { isMobileDevice } from "@/lib/mobile-detection";
 
 const MemoizedCongratulationsCanvas = React.memo(CongratulationsCanvas);
 const MemoizedFireworksBackground = React.memo(FireworksBackground);
@@ -32,7 +32,7 @@ export default function Home() {
   const [showMusicLine, setShowMusicLine] = useState(false);
   const [fireworksActive, setFireworksActive] = useState(false);
   const [newestMessageId, setNewestMessageId] = useState<number | null>(null);
-  const isMobile = React.useMemo(() => isMobileOrTouchDevice(), []);
+  const isMobile = React.useMemo(() => isMobileDevice(), []);
 
   const { congratulations, prefetchCongratulations, addCongratulation } =
     useCongratulations();
@@ -67,25 +67,6 @@ export default function Home() {
       {/* Audio element */}
       <audio ref={audioRef} src="/music.mp3" loop />
 
-      {/* Fireworks effect - disabled on mobile for performance */}
-      <AnimatePresence>
-        {fireworksActive && !isMobile && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-60 pointer-events-none"
-          >
-            <MemoizedFireworksBackground
-              className="absolute inset-0 flex items-center justify-center rounded-xl"
-              color={FIREWORK_COLORS}
-              // Reduce particle count on mobile
-              population={isMobile ? 0.3 : 1}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Music line at the top */}
       <AnimatePresence>
         {showMusicLine && (
@@ -117,6 +98,24 @@ export default function Home() {
           />
         </div>
       )}
+
+      {/* Fireworks effect - disabled on mobile for performance */}
+      <AnimatePresence>
+        {fireworksActive && !isMobile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 pointer-events-none"
+          >
+            <MemoizedFireworksBackground
+              className="absolute inset-0 flex items-center justify-center rounded-xl"
+              color={FIREWORK_COLORS}
+              population={isMobile ? 0.3 : 1}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

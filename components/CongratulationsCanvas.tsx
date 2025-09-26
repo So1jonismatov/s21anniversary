@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { animated, useTransition } from "@react-spring/web";
 import { Congratulation } from "@/types";
 import { usePanAndZoom } from "@/hooks/usePanAndZoom";
-import { isMobileOrTouchDevice } from "@/lib/mobile-detection";
+import { isMobileDevice } from "@/lib/mobile-detection";
 
 type CongratulationsCanvasProps = {
   congratulations: Congratulation[];
@@ -24,10 +24,9 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
   const mousePosition = useRef({ x: 0, y: 0 });
   const animationRef = useRef<number>(0);
   // Detect if we're on a mobile device for performance optimizations
-  const isMobile = isMobileOrTouchDevice();
+  const isMobile = isMobileDevice();
 
-  const { x, y, scale, handleMouseDown, handleTouchStart, api } =
-    usePanAndZoom();
+  const { x, y, scale, api } = usePanAndZoom(containerRef);
 
   useEffect(() => {
     windowSize.current = {
@@ -72,25 +71,28 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
     setPositions(newPositions);
   }, [congratulations, newestMessageId, isMobile]);
 
-  const centerOnMessage = React.useCallback((id: number) => {
-    const pos = positions[id];
-    if (pos) {
-      api.start({
-        x: -pos.x,
-        y: -pos.y,
-        scale: 1.5,
-        config: {
-          tension: 170,
-          friction: 26,
-          easing: (t: number) => {
-            return t < 0.5
-              ? 4 * t * t * t
-              : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+  const centerOnMessage = React.useCallback(
+    (id: number) => {
+      const pos = positions[id];
+      if (pos) {
+        api.start({
+          x: -pos.x,
+          y: -pos.y,
+          scale: 1.5,
+          config: {
+            tension: 170,
+            friction: 26,
+            easing: (t: number) => {
+              return t < 0.5
+                ? 4 * t * t * t
+                : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+            },
           },
-        },
-      });
-    }
-  }, [api, positions]);
+        });
+      }
+    },
+    [api, positions],
+  );
 
   useEffect(() => {
     if (newestMessageId) {
@@ -267,12 +269,7 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-screen overflow-hidden"
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
-    >
+    <div ref={containerRef} className="w-full h-screen overflow-hidden">
       <animated.div style={{ x, y, scale }} className="relative w-full h-full">
         {renderMessages()}
       </animated.div>
