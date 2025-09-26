@@ -10,6 +10,8 @@ import { Congratulation } from "@/types";
 import { useCongratulations } from "@/hooks/useCongratulations";
 import { isMobileDevice } from "@/lib/mobile-detection";
 
+import QrCodeModal from "@/components/QrCodeModal";
+
 const MemoizedCongratulationsCanvas = React.memo(CongratulationsCanvas);
 const MemoizedFireworksBackground = React.memo(FireworksBackground);
 
@@ -32,6 +34,7 @@ export default function Home() {
   const [showMusicLine, setShowMusicLine] = useState(false);
   const [fireworksActive, setFireworksActive] = useState(false);
   const [newestMessageId, setNewestMessageId] = useState<number | null>(null);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const isMobile = React.useMemo(() => isMobileDevice(), []);
 
   const { congratulations, prefetchCongratulations, addCongratulation } =
@@ -62,6 +65,19 @@ export default function Home() {
     }
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: document.title,
+        url: window.location.href,
+      });
+    }
+  };
+
+  const handleQrCode = () => {
+    setIsQrModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Audio element */}
@@ -76,10 +92,21 @@ export default function Home() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
           >
-            <MusicLine isPlaying={isPlaying} toggleMusic={toggleMusic} />
+            <MusicLine
+              isPlaying={isPlaying}
+              toggleMusic={toggleMusic}
+              onShare={handleShare}
+              onQrCode={handleQrCode}
+            />
           </motion.div>
         )}
       </AnimatePresence>
+
+      <QrCodeModal
+        isOpen={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
+        url={typeof window !== "undefined" ? window.location.href : ""}
+      />
 
       {/* Form section */}
       {showForm && (
@@ -95,13 +122,14 @@ export default function Home() {
           <MemoizedCongratulationsCanvas
             congratulations={congratulations}
             newestMessageId={newestMessageId}
+            isModalOpen={isQrModalOpen}
           />
         </div>
       )}
 
       {/* Fireworks effect - disabled on mobile for performance */}
       <AnimatePresence>
-        {fireworksActive && !isMobile && (
+        {fireworksActive && !isMobile && !isQrModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

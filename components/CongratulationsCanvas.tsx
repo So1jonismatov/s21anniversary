@@ -9,11 +9,13 @@ import { isMobileDevice } from "@/lib/mobile-detection";
 type CongratulationsCanvasProps = {
   congratulations: Congratulation[];
   newestMessageId: number | null;
+  isModalOpen: boolean;
 };
 
 const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
   congratulations,
   newestMessageId,
+  isModalOpen,
 }) => {
   const [positions, setPositions] = useState<{
     [key: number]: { x: number; y: number; speed: number; hue: number };
@@ -26,7 +28,7 @@ const CongratulationsCanvas: React.FC<CongratulationsCanvasProps> = ({
   // Detect if we're on a mobile device for performance optimizations
   const isMobile = isMobileDevice();
 
-  const { x, y, scale, api } = usePanAndZoom(containerRef);
+  const { x, y, scale, api } = usePanAndZoom(containerRef, isModalOpen);
 
   useEffect(() => {
     windowSize.current = {

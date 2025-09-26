@@ -3,7 +3,10 @@
 import { useSpring } from "@react-spring/web";
 import { useEffect, useRef, RefObject } from "react";
 
-export function usePanAndZoom(ref: RefObject<HTMLDivElement | null>) {
+export function usePanAndZoom(
+  ref: RefObject<HTMLDivElement | null>,
+  isModalOpen: boolean,
+) {
   const [{ x, y, scale }, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -199,6 +202,7 @@ export function usePanAndZoom(ref: RefObject<HTMLDivElement | null>) {
   };
 
   useEffect(() => {
+    if (isModalOpen) return;
     const element = ref.current;
     if (!element) return;
 

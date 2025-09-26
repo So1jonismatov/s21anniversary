@@ -2,13 +2,21 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
+import { Share2, QrCode } from "lucide-react";
 
 interface MusicLineProps {
   isPlaying: boolean;
   toggleMusic: () => void;
+  onShare: () => void;
+  onQrCode: () => void;
 }
 
-export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
+export default function MusicLine({
+  isPlaying,
+  toggleMusic,
+  onShare,
+  onQrCode,
+}: MusicLineProps) {
   const [width, setWidth] = useState(256);
   const height = 20;
   const amplitude = 6;
@@ -83,28 +91,42 @@ export default function MusicLine({ isPlaying, toggleMusic }: MusicLineProps) {
 
   return (
     <div className="absolute top-10 w-full flex flex-col items-center z-50">
-      <motion.div
-        className="cursor-pointer mb-4"
-        onClick={toggleMusic}
-        style={{ width, height }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-          <motion.path
-            d={path}
-            stroke="white"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1, ease: "easeInOut" }}
-          />
-        </svg>
-      </motion.div>
-      <span className="text-white/70 text-sm transition-all duration-300 ease-out">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onShare}
+          className="text-white/70 hover:text-white transition-colors"
+        >
+          <Share2 size={20} />
+        </button>
+        <motion.div
+          className="cursor-pointer"
+          onClick={toggleMusic}
+          style={{ width, height }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+            <motion.path
+              d={path}
+              stroke="white"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
+            />
+          </svg>
+        </motion.div>
+        <button
+          onClick={onQrCode}
+          className="text-white/70 hover:text-white transition-colors"
+        >
+          <QrCode size={20} />
+        </button>
+      </div>
+      <span className="text-white/70 text-sm transition-all duration-300 ease-out mt-4">
         {isPlaying ? "Click line to pause music" : "Click line to play music"}
       </span>
     </div>
